@@ -1,17 +1,44 @@
 import cv2
 import imutils as im
+import time
+
+
+count = 1
+
+def change(Time):
+    if Time>5:
+
+        return True
+    else:
+        return False
+
+
+def inc():
+
+    global count
+    count +=1
+    if count>3:
+        count = 1
+    return count
+
 
 # #==========start the videos==================
-cap1 = cv2.VideoCapture('/home/rahul/Videos/smartTraffic/Bangalore Traffic.mp4')
-cap2 = cv2.VideoCapture('/home/rahul/Videos/smartTraffic/video1.avi')
+cap1 = cv2.VideoCapture('/home/rahul/Videos/smartTraffic/video1.avi')
+cap2 = cv2.VideoCapture('/home/rahul/Videos/smartTraffic/Bangalore Traffic.mp4')
 cap3 = cv2.VideoCapture('/home/rahul/Videos/smartTraffic/video2.avi')
 
 # #============== create cascade objects========
 fgbg = cv2.createBackgroundSubtractorMOG2()
 car_cascade = cv2.CascadeClassifier('cars.xml')
 
+# #===========start timer=========
+initTime = time.time()
+initialTime = initTime
+print "reference time value: ",initialTime
+
 # #==============get continuous frames=============================
 while True:
+
     ret1, lane1 = cap1.read()
     ret2, lane2 = cap2.read()
     ret3, lane3 = cap3.read()
@@ -47,7 +74,31 @@ while True:
         cv2.rectangle(output3, (x, y), (x + w, y + h), (0, 0, 255), 2)
         l3x.append(x)
 
-    print "lane1:", len(l1x), "lane2:", len(l2x), "lane3:", len(l3x)
+
+
+    # ##--control flow code block---
+    currentTime = time.time() - initialTime
+    # print "current timer:", int(currentTime)
+    if change(currentTime):
+
+        initialTime= time.time()
+        # print currentTime
+
+        print "lane %d GO, rest stop"%(inc())
+        print "lane1:", len(l1x), "lane2:", len(l2x), "lane3:", len(l3x)
+    elif change(currentTime)==False:
+        # -----check and compare the number of cars in next lane
+        if count==1:
+            if len(l2x)>len(l1x):
+                dif = len(l2x) - len(l1x)
+                if dif > 5:
+                    initialTime = time.time()
+                    # print currentTime
+
+                    print "lane %d GO, rest stop" % (inc())
+                    print "lane1:", len(l1x), "lane2:", len(l2x), "lane3:", len(l3x)
+
+
 
     cv2.imshow("lane1", output1)
     cv2.imshow("lane2", output2)
@@ -86,3 +137,6 @@ cv2.destroyAllWindows()
 #         # draw the circle and centroid on the frame,
 #             cv2.drawContours(output, [c], 0, (0, 0, 255), 1)
 # ------------------------------------------------------------------------------------------------
+
+
+
