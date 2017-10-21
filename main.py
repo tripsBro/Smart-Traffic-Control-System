@@ -1,51 +1,88 @@
 import cv2
-import numpy as np
 import imutils as im
 
-# #==========start the video==================
-cap = cv2.VideoCapture('/home/rahul/Videos/smartTraffic/Autonomous Car Driving through heavy City Traffic.mp4')
+# #==========start the videos==================
+cap1 = cv2.VideoCapture('/home/rahul/Videos/smartTraffic/Bangalore Traffic.mp4')
+cap2 = cv2.VideoCapture('/home/rahul/Videos/smartTraffic/video1.avi')
+cap3 = cv2.VideoCapture('/home/rahul/Videos/smartTraffic/video2.avi')
+
+# #============== create cascade objects========
 fgbg = cv2.createBackgroundSubtractorMOG2()
 car_cascade = cv2.CascadeClassifier('cars.xml')
-# #==============start the video=============================
+
+# #==============get continuous frames=============================
 while True:
-    ret, frame = cap.read()
-    frame = im.resize(frame,360,240,cv2.INTER_AREA)
-    output = frame.copy()
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    cars = car_cascade.detectMultiScale(gray, 1.1, 1)
-    # To draw a rectangle in each cars
-    for (x, y, w, h) in cars:
-        cv2.rectangle(output, (x, y), (x + w, y + h), (0, 0, 255), 2)
+    ret1, lane1 = cap1.read()
+    ret2, lane2 = cap2.read()
+    ret3, lane3 = cap3.read()
 
+    lane1 = im.resize(lane1, 360, 240, cv2.INTER_AREA)
+    lane2 = im.resize(lane2, 360, 240, cv2.INTER_AREA)
+    lane3 = im.resize(lane3, 360, 240, cv2.INTER_AREA)
 
-    # _,thresh = cv2.threshold(gray,115,255,cv2.THRESH_BINARY)
-    # fgmask = fgbg.apply(thresh)
-    # cnts = cv2.findContours(fgmask.copy(), cv2.RETR_EXTERNAL,
-    #                         cv2.CHAIN_APPROX_SIMPLE)[-2]
-    # center = None
-    # if len(cnts) > 0:
-    #     # find the largest contour in the mask, then use
-    #     # it to compute the minimum enclosing circle and
-    #     # centroid
-    #     c = max(cnts, key=cv2.contourArea)
-    #     print "c: ", c, "sh: ", c.shape
-    #     ((x, y), radius) = cv2.minEnclosingCircle(c)
-    #     M = cv2.moments(c)
-    #     if M["m00"]>0:
-    #         center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-    #         area = cv2.contourArea(c)
-    #         print("area", area)
-    #
-    #         # only proceed if the radius meets a minimum size
-    #         if radius > 5:
-    #         # draw the circle and centroid on the frame,
-    #             cv2.drawContours(output, [c], 0, (0, 0, 255), 1)
+    output1 = lane1.copy()
+    output2 = lane2.copy()
+    output3 = lane3.copy()
 
-    cv2.imshow("lane1", output)
+    lane1_gray = cv2.cvtColor(lane1, cv2.COLOR_BGR2GRAY)
+    lane2_gray = cv2.cvtColor(lane2, cv2.COLOR_BGR2GRAY)
+    lane3_gray = cv2.cvtColor(lane3, cv2.COLOR_BGR2GRAY)
+
+    cars_lane1 = car_cascade.detectMultiScale(lane1_gray, 1.1, 1)
+    cars_lane2 = car_cascade.detectMultiScale(lane2_gray, 1.1, 1)
+    cars_lane3 = car_cascade.detectMultiScale(lane3_gray, 1.1, 1)
+
+    # create list to count cars in each lane
+    l1x = []
+    l2x = []
+    l3x = []
+    # draw rectangle around cars
+    for (x, y, w, h) in cars_lane1:
+        cv2.rectangle(output1, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        l1x.append(x)
+    for (x, y, w, h) in cars_lane2:
+        cv2.rectangle(output2, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        l2x.append(x)
+    for (x, y, w, h) in cars_lane3:
+        cv2.rectangle(output3, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        l3x.append(x)
+
+    print "lane1:", len(l1x), "lane2:", len(l2x), "lane3:", len(l3x)
+
+    cv2.imshow("lane1", output1)
+    cv2.imshow("lane2", output2)
+    cv2.imshow("lane3", output3)
     k = cv2.waitKey(30) & 0xff
     if k == 27:
         break
 
-cap.release()
+cap1.release()
+cap2.release()
+cap3.release()
 cv2.destroyAllWindows()
 
+# ---trying with contour detection---------
+
+# _,thresh = cv2.threshold(gray,115,255,cv2.THRESH_BINARY)
+# fgmask = fgbg.apply(thresh)
+# cnts = cv2.findContours(fgmask.copy(), cv2.RETR_EXTERNAL,
+#                         cv2.CHAIN_APPROX_SIMPLE)[-2]
+# center = None
+# if len(cnts) > 0:
+#     # find the largest contour in the mask, then use
+#     # it to compute the minimum enclosing circle and
+#     # centroid
+#     c = max(cnts, key=cv2.contourArea)
+#     print "c: ", c, "sh: ", c.shape
+#     ((x, y), radius) = cv2.minEnclosingCircle(c)
+#     M = cv2.moments(c)
+#     if M["m00"]>0:
+#         center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+#         area = cv2.contourArea(c)
+#         print("area", area)
+#
+#         # only proceed if the radius meets a minimum size
+#         if radius > 5:
+#         # draw the circle and centroid on the frame,
+#             cv2.drawContours(output, [c], 0, (0, 0, 255), 1)
+# ------------------------------------------------------------------------------------------------
